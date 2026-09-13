@@ -1,0 +1,37 @@
+[
+  {
+    "id": "TC01",
+    "type": "direct_query",
+    "question": "Chào bạn, bạn có thể giới thiệu quy chế học vụ cơ bản của Đại học VinUni không?",
+    "expected_behavior": "Chatbot trả lời trực tiếp từ System Prompt, không cần gọi bất kỳ Tool nào.",
+    "complexity": "Low"
+  },
+  {
+    "id": "TC02",
+    "type": "single_tool_query",
+    "question": "Hãy tra cứu thông tin học vụ của sinh viên SV2026001.",
+    "expected_behavior": "Agent nhận diện nhu cầu tra cứu, tự động phát sinh Tool Call 'academic_query' với mã SV2026001.",
+    "complexity": "Medium"
+  },
+  {
+    "id": "TC03",
+    "type": "appointment_booking",
+    "question": "Hãy đặt phòng họp ROOM-101 vào lúc 14:00 ngày 15/09/2026 cho nhân viên Nguyễn Văn An với mục đích 'Họp rà soát tiến độ Sprint 3'.",
+    "expected_behavior": "Agent tự động phát sinh Tool Call đặt phòng họp với đúng mã phòng 'ROOM-101', thời gian và thông tin người đặt.",
+    "complexity": "Medium"
+  },
+  {
+    "id": "TC04",
+    "type": "multi_step_reasoning",
+    "question": "Tôi cần tổ chức buổi hội thảo cho 20 người cần có máy chiếu và micro vào sáng mai. Hãy kiểm tra xem phòng ROOM-102 có đáp ứng được không, nếu đủ điều kiện hãy đặt phòng đó vào lúc 09:00 ngày 16/09/2026 cho Trần Thị Bình.",
+    "expected_behavior": "Agent thực hiện chuỗi suy luận ReAct: Tra cứu sức chứa và thiết bị của ROOM-102 trước, sau khi xác nhận đủ sức chứa và thiết bị thì tiến hành gọi Tool đặt phòng họp.",
+    "complexity": "High"
+  },
+  {
+    "id": "TC05",
+    "type": "edge_case_handling",
+    "question": "Hãy kiểm tra tình trạng và đặt lịch phòng họp ROOM-999 vào lúc 10:00 ngày mai.",
+    "expected_behavior": "Agent nhận kết quả NOT_FOUND từ Tool do mã phòng không tồn tại trong hệ thống và đưa ra phản hồi lịch sự, chính xác không bịa đặt dữ liệu.",
+    "complexity": "Medium"
+  }
+]

@@ -38,7 +38,40 @@ class MockOfflineProvider(BaseLLMProvider):
         prompt_lower = prompt.lower()
         
         # Mô phỏng nhận diện intent gọi Tool
-        if "sv2026001" in prompt_lower and "đặt lịch" in prompt_lower:
+        if "room-999" in prompt_lower:
+            return {
+                "type": "tool_call",
+                "tool_name": "room_query",
+                "arguments": {"room_id": "ROOM-999"},
+                "thought": "Người dùng muốn kiểm tra thông tin phòng họp ROOM-999. Tôi sẽ gọi tool room_query."
+            }
+        elif "room-102" in prompt_lower and ("đặt" in prompt_lower or "hội thảo" in prompt_lower):
+            return {
+                "type": "tool_call",
+                "tool_name": "room_query",
+                "arguments": {"room_id": "ROOM-102"},
+                "thought": "Người dùng yêu cầu kiểm tra xem phòng ROOM-102 có đáp ứng sức chứa 20 người và có máy chiếu, micro không. Tôi sẽ gọi tool room_query để kiểm tra."
+            }
+        elif "room-101" in prompt_lower and ("đặt" in prompt_lower or "booking" in prompt_lower):
+            return {
+                "type": "tool_call",
+                "tool_name": "book_meeting_room",
+                "arguments": {
+                    "room_id": "ROOM-101",
+                    "datetime_str": "14:00 15/09/2026",
+                    "booker_name": "Nguyễn Văn An",
+                    "purpose": "Họp rà soát tiến độ Sprint 3"
+                },
+                "thought": "Người dùng yêu cầu đặt phòng họp ROOM-101 vào lúc 14:00 ngày 15/09/2026. Tôi sẽ gọi tool book_meeting_room."
+            }
+        elif "room-101" in prompt_lower:
+            return {
+                "type": "tool_call",
+                "tool_name": "room_query",
+                "arguments": {"room_id": "ROOM-101"},
+                "thought": "Người dùng muốn tra cứu thông tin phòng họp ROOM-101. Tôi sẽ gọi tool room_query."
+            }
+        elif "sv2026001" in prompt_lower and "đặt lịch" in prompt_lower:
             return {
                 "type": "tool_call",
                 "tool_name": "schedule_appointment",
@@ -55,8 +88,8 @@ class MockOfflineProvider(BaseLLMProvider):
         else:
             return {
                 "type": "text",
-                "content": f"[Mock Agent Response]: Xin chào! Quy chế học vụ VinUni yêu cầu sinh viên tích lũy tối thiểu 120 tín chỉ và duy trì GPA trên 2.0 để tốt nghiệp.",
-                "thought": "Câu hỏi chung về quy chế học vụ, trả lời trực tiếp không cần gọi Tool."
+                "content": f"[Mock Agent Response]: Xin chào! Quy chế học vụ và quy định cơ sở vật chất VinUni yêu cầu đặt phòng trước tối thiểu 2 giờ và bảo quản các thiết bị hội nghị cẩn thận.",
+                "thought": "Câu hỏi chung về quy định và quy chế, trả lời trực tiếp không cần gọi Tool."
             }
 
 

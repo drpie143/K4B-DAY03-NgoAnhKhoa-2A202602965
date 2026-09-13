@@ -121,17 +121,27 @@ def run_react_agent(user_query: str, provider, mcp_server: MCPAcademicServer) ->
                 if obs_data.get("status") == "SUCCESS":
                     if "data" in obs_data:
                         d = obs_data["data"]
-                        final_answer = (
-                            f"Kết quả tra cứu cho sinh viên {obs_data.get('student_id', '')} ({d.get('full_name', '')}): "
-                            f"Lớp {d.get('class', '')}, GPA: {d.get('gpa', '')}, Email: {d.get('email', '')}, "
-                            f"Trạng thái: {d.get('status', '')}, Cố vấn: {d.get('advisor', '')}."
-                        )
+                        if "full_name" in d:
+                            final_answer = (
+                                f"Kết quả tra cứu cho sinh viên {obs_data.get('student_id', '')} ({d.get('full_name', '')}): "
+                                f"Lớp {d.get('class', '')}, GPA: {d.get('gpa', '')}, Email: {d.get('email', '')}, "
+                                f"Trạng thái: {d.get('status', '')}, Cố vấn: {d.get('advisor', '')}."
+                            )
+                        elif "room_name" in d:
+                            eq = ", ".join(d.get("equipment", []))
+                            final_answer = (
+                                f"Thông tin {d.get('room_name', '')} ({obs_data.get('room_id', '')}): "
+                                f"Sức chứa {d.get('capacity', '')} người, Vị trí: {d.get('location', '')}, "
+                                f"Trạng thái: {d.get('status', '')}. Trang thiết bị: {eq}."
+                            )
+                        else:
+                            final_answer = f"Kết quả tra cứu: {json.dumps(d, ensure_ascii=False)}"
                     elif "message" in obs_data:
                         final_answer = obs_data["message"]
                     else:
                         final_answer = f"Đã hoàn tất xử lý qua MCP Server: {json.dumps(obs_data, ensure_ascii=False)}"
                 elif obs_data.get("status") == "NOT_FOUND":
-                    final_answer = obs_data.get("message", "Không tìm thấy thông tin sinh viên yêu cầu.")
+                    final_answer = obs_data.get("message", "Không tìm thấy dữ liệu yêu cầu trong hệ thống.")
                 else:
                     final_answer = f"Phản hồi từ công cụ: {json.dumps(obs_data, ensure_ascii=False)}"
             
@@ -164,7 +174,7 @@ def run_react_agent(user_query: str, provider, mcp_server: MCPAcademicServer) ->
 
 if __name__ == "__main__":
     print("==========================================================")
-    print("🏫 VINUNI AI COURSE - DAY 03 LAB: CHATBOT VS REACT AGENT")
+    print("🏢 FACILITIES AGENT SYSTEM - DAY 03 LAB: REACT AGENT MCP")
     print("==========================================================")
     
     provider = get_llm_provider()
@@ -177,15 +187,15 @@ if __name__ == "__main__":
     print(f"✅ Đã tải thành công {len(tests)} Test Cases thử nghiệm.\n")
     
     if "--interactive" in sys.argv:
-        print("🎮 [INTERACTIVE MODE] Trò chuyện trực tiếp với ReAct Agent:")
-        print("💡 Gợi ý câu hỏi thử nghiệm:")
-        print("   - Câu hỏi chung: 'Quy chế học vụ VinUni yêu cầu bao nhiêu tín chỉ?'")
-        print("   - Tra cứu học vụ: 'Hãy tra cứu thông tin học vụ của sinh viên SV2026001'")
-        print("   - Đặt lịch hẹn: 'Đặt lịch hẹn tư vấn cho SV2026001 vào 14:00 ngày 15/09/2026'")
+        print("🎮 [INTERACTIVE MODE] Trò chuyện trực tiếp với Facilities ReAct Agent:")
+        print("💡 Gợi ý câu hỏi thử nghiệm (Chủ đề 2.3: Đặt phòng họp & Thiết bị):")
+        print("   - Câu hỏi chung: 'Quy định đặt phòng họp trước bao lâu và bảo quản thiết bị ra sao?'")
+        print("   - Tra cứu phòng họp: 'Hãy kiểm tra tình trạng phòng họp và thiết bị của ROOM-101'")
+        print("   - Đặt phòng họp: 'Đặt phòng ROOM-101 lúc 14:00 ngày 15/09/2026 cho Nguyễn Văn An'")
         print("   - Gõ 'exit' hoặc 'quit' để kết thúc phiên trò chuyện.\n")
         while True:
             try:
-                user_input = input("👤 Sinh viên hỏi: ").strip()
+                user_input = input("👤 Người dùng hỏi: ").strip()
                 if not user_input or user_input.lower() in ["exit", "quit"]:
                     print("👋 Tạm biệt! Kết thúc phiên trò chuyện.")
                     break
@@ -200,7 +210,7 @@ if __name__ == "__main__":
         todo_count = 0
         all_traces = []
         
-        for tc in tests:
+        for idx, tc in enumerate(tests):
             print(f"\n==================================================")
             print(f"🧪 [{tc['id']}] Loại test: {tc['type']} (Độ phức tạp: {tc['complexity']})")
             print(f"📌 Kỳ vọng: {tc['expected_behavior']}")
@@ -214,6 +224,9 @@ if __name__ == "__main__":
                 logs = run_react_agent(tc["question"], provider, mcp_server)
                 all_traces.extend(logs)
                 completed_count += 1
+                # Nghỉ ngắn giữa các request để tránh vượt ngưỡng Rate Limit (15 RPM) của API Free Tier
+                if idx < len(tests) - 1:
+                    time.sleep(2)
                 
         print(f"\n==================================================")
         print(f"📊 [KẾT QUẢ TEST SUITE]: Đã thực thi {completed_count}/{len(tests)} Test Cases | {todo_count} Test Cases đang chờ điền câu hỏi (TODO)")

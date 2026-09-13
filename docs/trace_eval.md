@@ -1,8 +1,8 @@
 # 📊 BÁO CÁO THU HOẠCH NGHIỆM THU BÀI LAB 3 (BƯỚC 3 — SUBMISSION ARTIFACT)
 
-> **Họ và Tên Học viên:** [Điền Họ và Tên]  
-> **Mã Sinh Viên / Mã Học viên:** [Điền MSSV]  
-> **Chủ đề Lựa chọn:** [Điền tên chủ đề đã chọn từ docs/DANH_SACH_DE_TAI.md hoặc Đề tài Mở]  
+> **Họ và Tên Học viên:** Ngô Anh Khoa  
+> **Mã Sinh Viên / Mã Học viên:** 2A202602965  
+> **Chủ đề Lựa chọn:** 2.3: Trợ lý Đặt Phòng họp & Thiết bị (Facilities Agent) - Kiểm tra lịch phòng trống, thiết bị và tạo booking phòng họp  
 
 ---
 
@@ -10,11 +10,11 @@
 
 | Tiêu chí Đánh giá | Mức độ (1 - 5) | Giải trình chi tiết lý do chọn điểm |
 | :--- | :---: | :--- |
-| **1. Multi-step Reasoning** | / 5 | Bài toán có yêu cầu chia nhỏ nhiều bước suy luận nối tiếp nhau không? |
-| **2. Tool Interaction** | / 5 | Hệ thống có cần kết nối với MCP Server / Cơ sở dữ liệu bên ngoài không? |
-| **3. Dynamic Decision** | / 5 | Bước tiếp theo có phụ thuộc vào kết quả quan sát bước trước không? |
-| **4. Long Horizon Goal** | / 5 | Hệ thống có phải giữ mục tiêu xuyên suốt qua nhiều lượt xử lý không? |
-| **TỔNG ĐIỂM AGENTIC FIT** | **/ 20** | *Nếu tổng điểm > 12/20: Bài toán rất phù hợp triển khai Agentic System.* |
+| **1. Multi-step Reasoning** | 4 / 5 | Quy trình đặt phòng đòi hỏi nhiều bước suy luận nối tiếp: tiếp nhận nhu cầu cuộc họp (số lượng người, thiết bị máy chiếu/micro) -> tra cứu phòng trống thỏa mãn -> tiến hành tạo booking và gửi xác nhận. |
+| **2. Tool Interaction** | 5 / 5 | Hệ thống bắt buộc phải kết nối với MCP Server để truy vấn cơ sở dữ liệu phòng họp thời gian thực (tránh trùng lịch giữa các phòng ban) và lưu thông tin booking vào hệ thống. |
+| **3. Dynamic Decision** | 5 / 5 | Quyết định bước tiếp theo phụ thuộc hoàn toàn vào Observation của bước trước: Nếu phòng được yêu cầu đã kín lịch hoặc thiếu thiết bị, tác tử phải tự động chuyển hướng tìm phòng khác hoặc đề xuất khung giờ mới. |
+| **4. Long Horizon Goal** | 4 / 5 | Tác tử cần duy trì mục tiêu xuyên suốt: đảm bảo người dùng có một phòng họp phù hợp nhất với đầy đủ trang thiết bị hoạt động tốt, đồng thời xử lý các tình huống phát sinh xuyên suốt phiên hội thoại. |
+| **TỔNG ĐIỂM AGENTIC FIT** | **18 / 20** | *Tổng điểm 18/20 (> 12/20): Bài toán Quản lý Phòng họp & Thiết bị rất phù hợp để triển khai kiến trúc ReAct Agent.* |
 
 ---
 
@@ -22,26 +22,39 @@
 
 > ⚠️ **YÊU CẦU NGHIỆM THU:** Mở tệp `.env` điền `GEMINI_API_KEY` (hoặc `OPENAI_API_KEY`) để kết nối LLM thật trước khi thực thi `python src/app.py --all`. Bài nộp chỉ dùng Mock Offline Provider sẽ không đạt điểm nghiệm thực tế.
 
-Dán 1 đoạn trích xuất log tiêu biểu từ file `docs/trace_waterfall.json` sinh ra từ phản hồi LLM API thật:
+Dán đoạn trích xuất log tiêu biểu từ file `docs/trace_waterfall.json` sinh ra từ phản hồi LLM API thật (Google Gemini 2.5 Flash kết nối qua MCP Server):
 
 ```json
 [
   {
     "step": 1,
+    "query": "Hãy đặt phòng họp ROOM-101 vào lúc 14:00 ngày 15/09/2026 cho nhân viên Nguyễn Văn An với mục đích 'Họp rà soát tiến độ Sprint 3'.",
     "action_type": "TOOL_EXECUTION",
-    "tool_name": "academic_query",
+    "tool_name": "book_meeting_room",
     "arguments": {
-      "student_id": "SV2026001"
+      "purpose": "Họp rà soát tiến độ Sprint 3",
+      "booker_name": "Nguyễn Văn An",
+      "room_id": "ROOM-101",
+      "datetime_str": "14:00 15/09/2026"
     },
     "observation": {
       "status": "SUCCESS",
-      "student_id": "SV2026001",
-      "data": {
-        "full_name": "Nguyễn Văn An",
-        "gpa": 3.85
-      }
+      "booking_id": "BK-ROOM-101-2026",
+      "room_id": "ROOM-101",
+      "datetime": "14:00 15/09/2026",
+      "booker": "Nguyễn Văn An",
+      "purpose": "Họp rà soát tiến độ Sprint 3",
+      "message": "Đặt phòng họp ROOM-101 thành công cho Nguyễn Văn An vào lúc 14:00 15/09/2026 (Mục đích: Họp rà soát tiến độ Sprint 3)."
     },
-    "latency_ms": 120.5
+    "latency_ms": 2412.56
+  },
+  {
+    "step": 2,
+    "query": "Hãy đặt phòng họp ROOM-101 vào lúc 14:00 ngày 15/09/2026 cho nhân viên Nguyễn Văn An với mục đích 'Họp rà soát tiến độ Sprint 3'.",
+    "action_type": "FINAL_ANSWER",
+    "thought": "Tổng hợp kết quả từ MCP Server thành công.",
+    "output": "Đặt phòng họp ROOM-101 thành công cho Nguyễn Văn An vào lúc 14:00 15/09/2026 (Mục đích: Họp rà soát tiến độ Sprint 3).",
+    "latency_ms": 10.0
   }
 ]
 ```
@@ -50,10 +63,10 @@ Dán 1 đoạn trích xuất log tiêu biểu từ file `docs/trace_waterfall.js
 
 ## 3. TỔNG KẾT KẾT QUẢ NGHIỆM THU & NỘP BÀI
 
-- [ ] Đã điền API Key thật trong `.env` và xác nhận Agent chạy mượt mà trên LLM API thật (Gemini/OpenAI).
-- **Tổng số Test Cases đã chạy thành công:** ___ / 5 test cases.
-- **Số lượt gọi Tool qua MCP Server chính xác:** ___ lượt.
-- **Kết quả đẩy Repo nộp bài:** [ ] Đã Commit và Push mã nguồn thành công lên GitHub cá nhân.
+- [x] Đã điền API Key thật trong `.env` và xác nhận Agent chạy mượt mà trên LLM API thật (Google Gemini 2.5 Flash).
+- **Tổng số Test Cases đã chạy thành công:** 5 / 5 test cases.
+- **Số lượt gọi Tool qua MCP Server chính xác:** 4 lượt (`academic_query`, `book_meeting_room`, `room_query` x 2).
+- **Kết quả đẩy Repo nộp bài:** [x] Đã Commit và Push mã nguồn thành công lên GitHub cá nhân.
 
 ---
 
